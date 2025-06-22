@@ -17,8 +17,9 @@ public class ADHDManager: MonoBehaviour
     private RawImage rawImage;
     private Vector2 lastPosition;
     private Vector2 lastScale;
+    private float lastTransparency;
+    
     public ManualLogSource logger;
-
     public static ADHDManager Instance;
     
     public static ADHDManager Create(ManualLogSource log)
@@ -42,20 +43,27 @@ public class ADHDManager: MonoBehaviour
         add => EFTHelpers._GameWorldHelper.OnGameStarted.Add(value);
         remove => EFTHelpers._GameWorldHelper.OnGameStarted.Remove(value);
     }
-    
-    public EftBattleUIScreen YourEftBattleUIScreen => EFTGlobal.EftBattleUIScreen;
 
-    public Player YourPlayer => EFTGlobal.Player;
+    private EftBattleUIScreen YourEftBattleUIScreen => EFTGlobal.EftBattleUIScreen;
 
-    public bool HasPlayer => YourPlayer != null;
+    private Player YourPlayer => EFTGlobal.Player;
+
+    private bool HasPlayer => YourPlayer != null;
 
     public static void OnWorldStart(GameWorld world)
     {
-        ADHDManager.Instance.logger.LogWarning("World started, we`ll start ADHD video");
-        ADHDManager.Instance.PlayADHDVideo(SettingsModel.Instance.positionX.Value, SettingsModel.Instance.positionY.Value);
+        if (SettingsModel.Instance.showVideo.Value)
+        {
+            Instance.logger.LogInfo("World started, we`ll start ADHD video");
+            Instance.PlayVideo(SettingsModel.Instance.positionX.Value, SettingsModel.Instance.positionY.Value);
+        }
+        else
+        {
+            Instance.logger.LogInfo("World started, but you disabled Satisfying video in settings pWq");
+        }
     }
     
-    public void PlayADHDVideo(float posX, float posY)
+    public void PlayVideo(float posX, float posY)
     {
         if (!HasPlayer)
         {
@@ -63,23 +71,23 @@ public class ADHDManager: MonoBehaviour
         }
         
         string videoPath = Path.Combine(BepInEx.Paths.PluginPath, "ADHDVideo", "ADHDVideos", "soap.mp4");
-        SatisfyingOverlayPlugin.LogSource.LogWarning($"Path to video {videoPath}");
+        logger.LogWarning($"Path to video {videoPath}");
 
         if (!File.Exists(videoPath))
         {
             logger.LogWarning("Video Not Exist: " + videoPath);
         }
 
-        GameObject videoGO  = new GameObject("ADHDVideoPlayer");
-        VideoPlayer player = videoGO.AddComponent<VideoPlayer>();
+        GameObject videoPlayer  = new GameObject("ADHDVideoPlayer");
+        VideoPlayer player = videoPlayer.AddComponent<VideoPlayer>();
             
-        GameObject imageGO = new GameObject("ADHDVideoImage", typeof(RawImage));
-        imageGO.transform.SetParent(YourEftBattleUIScreen.RectTransform.transform, false);
+        GameObject imageRender = new GameObject("ADHDVideoImage", typeof(RawImage));
+        imageRender.transform.SetParent(YourEftBattleUIScreen.RectTransform.transform, false);
             
         var renderTexture = new RenderTexture(1280, 720, 0);
         renderTexture.Create();
         
-        rawImage = imageGO.GetComponent<RawImage>();
+        rawImage = imageRender.GetComponent<RawImage>();
         rawImage.texture = renderTexture;
         rawImage.color = new Color(1, 1, 1, 0.85f);
         rawImage.rectTransform.sizeDelta = new Vector2(320, 180);
@@ -96,7 +104,7 @@ public class ADHDManager: MonoBehaviour
         player.url = "file:///" + videoPath.Replace("\\", "/");
         player.Play();
 
-        logger.LogWarning("Videoplayer created " + videoPath);
+        logger.LogInfo("Videoplayer created " + videoPath);
     }
     
     public void UpdatePosition(float posX, float posY)
@@ -122,6 +130,18 @@ public class ADHDManager: MonoBehaviour
         {
             rawImage.rectTransform.sizeDelta = newScale;
             lastScale = newScale;
+        }
+    }
+    
+    public void UpdateTransparency(float newTransparency)
+    {
+        if (rawImage == null)
+            return;
+        
+        if (newTransparency != lastTransparency)
+        {
+            rawImage.color = new Color(1, 1, 1, newTransparency);
+            lastTransparency = newTransparency;
         }
     }
 
