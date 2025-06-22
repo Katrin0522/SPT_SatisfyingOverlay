@@ -70,7 +70,7 @@ public class ADHDManager: MonoBehaviour
             return;
         }
         
-        string videoPath = Path.Combine(BepInEx.Paths.PluginPath, "ADHDVideo", "ADHDVideos", "soap.mp4");
+        string videoPath = Path.Combine(BepInEx.Paths.PluginPath, "SatisfyingOverlay", "ADHDVideos", "soap.mp4");
         logger.LogWarning($"Path to video {videoPath}");
 
         if (!File.Exists(videoPath))
