@@ -44,5 +44,5 @@ Do whatever you want with it — just give credit and keep it weird.
 
 ## 🧽 Credits
 
-Made by Katrin0522 aka Kat 
+Made by Katrin0522 aka Kat.
 Idea sparked by pure overstimulation and a love for oddly satisfying TikToks.

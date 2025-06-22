@@ -8,43 +8,58 @@ public class SettingsModel
 
 	private SettingsModel(ConfigFile configFile)
 	{
-		triggerButton = configFile.Bind("Main", "Play ADHD Video", false, "Нажми true → плеер появится");
+		showVideo = configFile.Bind(
+			"Main", 
+			"Show ADHD overlay", 
+			true, 
+			"Show videos in overlay in raid. Will applied when restart raid");
+		
 		positionX = configFile.Bind(
 			"UI",
 			"Position X",
 			0f,
 			new ConfigDescription(
-				"Позиция по X",
+				"Move video by X axis",
 				new AcceptableValueRange<float>(-1000f, 1000f)
 			));
+		
 		positionY = configFile.Bind(
 			"UI",
 			"Position Y",
 			0f,
 			new ConfigDescription(
-				"Позиция по Y",
+				"Move video by Y axis",
 				new AcceptableValueRange<float>(-1000f, 1000f)
 			));
+		
 		scaleWidth = configFile.Bind(
 			"UI", 
 			"Scale Width", 
 			320f, 
 			new ConfigDescription(
-				"Scale Width",
+				"Scale video by horizonal size",
 				new AcceptableValueRange<float>(0f, 2000f)
 			));
+		
 		scaleHeight = configFile.Bind(
 			"UI", 
 			"Scale Height", 
 			180f, 
 			new ConfigDescription(
-				"Scale Height",
+				"Scale video by vertical size",
 				new AcceptableValueRange<float>(0f, 2000f)
 			));
-		// updateButton = configFile.Bind("UI", "Setup Position", false, "Click for update");
+		
+		transparency = configFile.Bind(
+			"UI", 
+			"Transparency", 
+			0.5f, 
+			new ConfigDescription(
+				"Transparency scale video in raid",
+				new AcceptableValueRange<float>(0f, 1f)
+			));
 	}
-
-	// Token: 0x06000078 RID: 120 RVA: 0x00004E35 File Offset: 0x00003035
+	
 	public static SettingsModel Create(ConfigFile configFile)
 	{
 		if (Instance != null)
@@ -54,10 +69,11 @@ public class SettingsModel
 		return Instance = new SettingsModel(configFile);
 	}
 
-	public ConfigEntry<bool> triggerButton;
+	public ConfigEntry<bool> showVideo;
 	public ConfigEntry<bool> updateButton;
 	public ConfigEntry<float> positionX;
 	public ConfigEntry<float> positionY;
 	public ConfigEntry<float> scaleWidth;
 	public ConfigEntry<float> scaleHeight;
+	public ConfigEntry<float> transparency;
 }

@@ -123,8 +123,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\ADHDManager.cs" />
-    <Compile Include="ExamplePatches\SimplePatch.cs" />
-    <Compile Include="ExamplePatches\SimplePatchCheck.cs" />
     <Compile Include="Models\SettingsModel.cs" />
     <Compile Include="SatisfyingOverlayPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
