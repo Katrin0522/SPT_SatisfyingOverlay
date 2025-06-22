@@ -11,8 +11,7 @@ namespace SatisfyingOverlay
     {
         private SettingsModel settings;
         private ADHDManager manager;
-        
-        public static ManualLogSource LogSource;
+        private ManualLogSource LogSource;
         
         private void Awake()
         {

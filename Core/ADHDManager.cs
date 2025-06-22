@@ -89,7 +89,7 @@ public class ADHDManager: MonoBehaviour
         
         rawImage = imageRender.GetComponent<RawImage>();
         rawImage.texture = renderTexture;
-        rawImage.color = new Color(1, 1, 1, 0.85f);
+        rawImage.color = new Color(1, 1, 1, SettingsModel.Instance.transparency.Value);
         rawImage.rectTransform.sizeDelta = new Vector2(320, 180);
         rawImage.rectTransform.anchoredPosition = new Vector2(posX, posY);
         lastPosition = rawImage.rectTransform.anchoredPosition;
