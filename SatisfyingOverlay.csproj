@@ -124,6 +124,7 @@
   <ItemGroup>
     <Compile Include="Core\ADHDManager.cs" />
     <Compile Include="Models\SettingsModel.cs" />
+    <Compile Include="Models\VideoConfigSlot.cs" />
     <Compile Include="SatisfyingOverlayPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

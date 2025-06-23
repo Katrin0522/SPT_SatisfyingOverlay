@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
@@ -16,17 +17,13 @@ namespace SatisfyingOverlay.Core;
 
 public class ADHDManager: MonoBehaviour
 {
-    private RawImage _rawImage;
-    private Vector2 _lastPosition;
-    private Vector2 _lastScale;
-    private float _lastTransparency;
-    
-    private GameObject _videoPlayer;
-    private GameObject _imageRender;
-    private RenderTexture _renderTexture;
+    public Dictionary<VideoConfigSlot, GameObject> SlotActivePlayers = new();
+    public Dictionary<VideoConfigSlot, RawImage> SlotImages = new();
+    public Dictionary<VideoConfigSlot, VideoPlayer> SlotPlayers = new();
+    public Dictionary<VideoConfigSlot, RenderTexture> SlotTextures = new();
 
-
-    public ManualLogSource logger;
+    public ManualLogSource Logger;
+    private bool InGame = false;
     public static ADHDManager Instance;
     
     public static ADHDManager Create(ManualLogSource log)
@@ -36,7 +33,7 @@ public class ADHDManager: MonoBehaviour
 
         GameObject go = new GameObject("ADHDManager");
         Instance = go.AddComponent<ADHDManager>();
-        Instance.logger = log;
+        Instance.Logger = log;
         DontDestroyOnLoad(go);
 
         WorldStart += OnWorldStart;
@@ -65,122 +62,211 @@ public class ADHDManager: MonoBehaviour
 
     public static void OnWorldStart(GameWorld world)
     {
-        if (SettingsModel.Instance.showVideo.Value)
+        Instance.UpdateInGameStatus(true);
+        if (SettingsModel.Instance.GlobalEnable.Value)
         {
-            Instance.logger.LogInfo("World started, we`ll start ADHD video");
-            Instance.PlayVideo(SettingsModel.Instance.positionX.Value, SettingsModel.Instance.positionY.Value);
+            Instance.Logger.LogInfo("World started, we`ll start all ADHD video");
+            foreach (var cfg in SettingsModel.Instance.Slots)
+            {
+                if (!cfg.Enabled.Value) continue;
+
+                var go = Instance.PlayVideo(cfg);
+
+                if (go != null)
+                    Instance.SlotActivePlayers[cfg] = go;
+            }
+            
+            Instance.Logger.LogInfo("We started all enabled videos");
         }
     }
     
     public static void OnWorldDispose(GameWorld world)
     {
-        if (Instance == null)
-            return;
-
-        Instance.logger.LogInfo("ADHDVideo Disposed");
-
-        if (Instance._rawImage != null)
-            Destroy(Instance._rawImage.gameObject);
-
-        if (Instance._videoPlayer != null)
-            Destroy(Instance._videoPlayer);
-
-        if (Instance._imageRender != null)
-            Destroy(Instance._imageRender);
-
-        if (Instance._renderTexture != null)
-        {
-            Instance._renderTexture.Release();
-            Destroy(Instance._renderTexture);
-        }
-
-        Instance._rawImage = null;
-        Instance._videoPlayer = null;
-        Instance._imageRender = null;
-        Instance._renderTexture = null;
+        Instance.UpdateInGameStatus(false);
+        Instance.DisposeAllVideos();
     }
 
+    public void DisposeAllVideos()
+    {
+        Logger.LogInfo("Disposing all ADHD video objects");
+
+        foreach (var tex in SlotTextures)
+        {
+            if (tex.Value == null) continue;
+            
+            tex.Value.Release();
+            Destroy(tex.Value);
+        }
+        
+        foreach (var player in SlotPlayers)
+        {
+            if (player.Value == null) continue;
+            
+            Destroy(player.Value);
+        }
+        
+        foreach (var image in SlotImages)
+        {
+            if (image.Value == null) continue;
+            
+            Destroy(image.Value);
+        }
+        
+        foreach (var playerObj in SlotActivePlayers)
+        {
+            if (playerObj.Value == null) continue;
+            
+            Destroy(playerObj.Value);
+        }
+
+        SlotActivePlayers.Clear();
+        SlotTextures.Clear();
+        SlotPlayers.Clear();
+        SlotImages.Clear();
+    }
     
-    public void PlayVideo(float posX, float posY)
+    public GameObject PlayVideo(VideoConfigSlot cfg)
     {
         if (!HasPlayer)
         {
-            return;
+            return null;
         }
         
-        var videoPath = Path.Combine(BepInEx.Paths.PluginPath, "SatisfyingOverlay", "ADHDVideos", "soap.mp4");
-        logger.LogInfo($"Path to video {videoPath}");
+        var videoPath = Path.Combine(BepInEx.Paths.PluginPath, "SatisfyingOverlay", "Videos", cfg.FileName.Value);
+        Logger.LogInfo($"[Slot {cfg.NameVideoSlot}] Path to video {videoPath}");
 
         if (!File.Exists(videoPath))
         {
-            logger.LogWarning("Video Not Exist: " + videoPath);
+            Logger.LogWarning($"[Slot {cfg.NameVideoSlot}] Video Not Exist: " + videoPath);
+            return null;
         }
 
-        _videoPlayer = new GameObject("ADHDVideoPlayer");
-        var player = _videoPlayer.AddComponent<VideoPlayer>();
-            
-        _imageRender = new GameObject("ADHDVideoImage", typeof(RawImage));
-        _imageRender.transform.SetParent(YourEftBattleUIScreen.RectTransform.transform, false);
-            
-        _renderTexture = new RenderTexture(1280, 720, 0);
-        _renderTexture.Create();
+        var renderTexture = new RenderTexture(1280, 720, 0);
+        renderTexture.Create();
+        SlotTextures[cfg] = renderTexture;
         
-        _rawImage = _imageRender.GetComponent<RawImage>();
-        _rawImage.texture = _renderTexture;
-        _rawImage.color = new Color(1, 1, 1, SettingsModel.Instance.transparency.Value);
-        _rawImage.rectTransform.sizeDelta = new Vector2(320, 180);
-        _rawImage.rectTransform.anchoredPosition = new Vector2(posX, posY);
-        _lastPosition = _rawImage.rectTransform.anchoredPosition;
-        _lastScale = new Vector2(320, 180);
-
+        var videoPlayerGO = new GameObject($"[SO]VideoPlayer_[Slot{cfg.NameVideoSlot}]");
+        var videoPlayer = videoPlayerGO.AddComponent<VideoPlayer>();
+        SlotPlayers[cfg] = videoPlayer;
             
-        player.playOnAwake = false;
-        player.isLooping = true;
-        player.audioOutputMode = VideoAudioOutputMode.None;
-        player.targetTexture = _renderTexture;
-        player.source = VideoSource.Url;
-        player.url = "file:///" + videoPath.Replace("\\", "/");
-        player.Play();
+        var imageGO = new GameObject($"[SO]RawImage_[Slot{cfg.NameVideoSlot}]", typeof(RawImage));
+        imageGO.transform.SetParent(YourEftBattleUIScreen.RectTransform.transform, false);
+        
+        var rawImage = imageGO.GetComponent<RawImage>();
+        rawImage.texture = renderTexture;
+        rawImage.color = new Color(1, 1, 1, cfg.Transparency.Value);
+        rawImage.rectTransform.sizeDelta = new Vector2(cfg.Width.Value, cfg.Height.Value);
+        rawImage.rectTransform.anchoredPosition = new Vector2(cfg.PositionX.Value, cfg.PositionY.Value);
 
-        logger.LogInfo("Videoplayer created " + videoPath);
+        SlotImages[cfg] = rawImage;
+            
+        videoPlayer.playOnAwake = false;
+        videoPlayer.isLooping = true;
+        videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
+        videoPlayer.targetTexture = renderTexture;
+        videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
+        videoPlayer.source = VideoSource.Url;
+        videoPlayer.url = "file:///" + videoPath.Replace("\\", "/");
+        videoPlayer.prepareCompleted += _ =>
+        {
+            Logger.LogInfo($"[Slot{cfg.NameVideoSlot}]Prepared, now playing...");
+            videoPlayer.Play();
+        };
+        videoPlayer.Prepare();
+
+        Logger.LogInfo("Videoplayer created " + videoPath);
+        return videoPlayerGO;
     }
     
-    public void UpdatePosition(float posX, float posY)
+    public void UpdatePosition(VideoConfigSlot slot)
     {
-        if (_rawImage == null)
+        if (!SlotImages.TryGetValue(slot, out var image) || image == null)
             return;
 
-        Vector2 current = new Vector2(posX, posY);
-        if (current != _lastPosition)
-        {
-            _rawImage.rectTransform.anchoredPosition = current;
-            _lastPosition = current;
-        }
+        var pos = new Vector2(slot.PositionX.Value, slot.PositionY.Value);
+        image.rectTransform.anchoredPosition = pos;
     }
     
-    public void UpdateScale(float width, float height)
+    public void UpdateScale(VideoConfigSlot slot)
     {
-        if (_rawImage == null)
+        if (!SlotImages.TryGetValue(slot, out var image) || image == null)
             return;
 
-        Vector2 newScale = new Vector2(width, height);
-        if (newScale != _lastScale)
-        {
-            _rawImage.rectTransform.sizeDelta = newScale;
-            _lastScale = newScale;
-        }
+        var newScale = new Vector2(slot.Width.Value, slot.Height.Value);
+        image.rectTransform.sizeDelta = newScale;
     }
     
-    public void UpdateTransparency(float newTransparency)
+    public void UpdateTransparency(VideoConfigSlot slot)
     {
-        if (_rawImage == null)
+        if (!SlotImages.TryGetValue(slot, out var image) || image == null)
             return;
         
-        if (newTransparency != _lastTransparency)
+        image.color = new Color(1, 1, 1, slot.Transparency.Value);
+    }
+
+    public void UpdateVideoSlot(VideoConfigSlot slot)
+    {
+        Logger.LogInfo($"Updating slot: {slot.Preset.Value}");
+        
+        if (SlotImages.TryGetValue(slot, out var oldImage))
         {
-            _rawImage.color = new Color(1, 1, 1, newTransparency);
-            _lastTransparency = newTransparency;
+            if (oldImage != null)
+            {
+                Destroy(oldImage.gameObject);
+                SlotImages.Remove(slot);
+            }
+        }
+
+        if (SlotPlayers.TryGetValue(slot, out var oldPlayer))
+        {
+            if (oldPlayer != null)
+            {
+                Destroy(oldPlayer.gameObject);
+                SlotPlayers.Remove(slot);
+            }
+        }
+        
+        if (SlotTextures.TryGetValue(slot, out var oldTexture))
+        {
+            if (oldTexture != null)
+            {
+                oldTexture.Release();
+                Destroy(oldTexture);
+            }
+            
+            SlotActivePlayers.Remove(slot);
+        }
+        
+        if (SlotActivePlayers.TryGetValue(slot, out var oldActivePlayer))
+        {
+            if (oldActivePlayer != null)
+            {
+                Destroy(oldActivePlayer);
+                SlotActivePlayers.Remove(slot);
+            }
+        }
+        
+        if (!slot.Enabled.Value || !InGame)
+        {
+            return;
+        }
+        
+        var go = Instance.PlayVideo(slot);
+
+        if (go != null)
+        {
+            Instance.SlotActivePlayers[slot] = go;
+            Logger.LogInfo($"Video updated for slot with {slot.FileName.Value}");
         }
     }
 
+    public void UpdateSlotStatus()
+    {
+        Logger.LogWarning("Not realized method. UpdateSlotStatus");
+    }
+
+    public void UpdateInGameStatus(bool status)
+    {
+        InGame = status;
+    }
 }
