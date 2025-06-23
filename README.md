@@ -11,11 +11,14 @@ Pure visual dopamine, perfect for tactical vibing mid-fight.
 ## 🧠 Features
 
 - 🎥 Plays relaxing/satisfying videos during raids
+- Supports adding up to 10 videos at the same time!!
 - ⚙️ Fully configurable:
   - Position (X/Y)
   - Scale (Width/Height)
-  - Scale (Width/Height)
-- 🔊 Optional audio support (if you really want to hear the sponge)(WIP)
+  - Transparency
+  - Set video by custom name file
+  - Separate control for each player
+- 🔊 Optional audio support (if you really want to hear the 'ASMR')(WIP)
 
 ---
 
@@ -25,13 +28,14 @@ Pure visual dopamine, perfect for tactical vibing mid-fight.
    
 3. Launch the game once — then press `F12` to open **BepInEx ConfigurationManager**
    
-5. Change position/scale sliders and start raid!
+5. You change everything to your liking in the Kat.SatisfyingOverlay tab!
 
 ---
 
 ## 📦 Requirements
 
 - SPT (tested with version 3.11.2)
+- Installed Kmy-Tarkov-Api
   
 ---
 
