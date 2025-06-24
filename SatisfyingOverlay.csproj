@@ -99,6 +99,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Dependencies\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>Dependencies\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>Dependencies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
@@ -122,7 +125,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\ADHDManager.cs" />
+    <Compile Include="Core\VideoManager.cs" />
     <Compile Include="Models\SettingsModel.cs" />
     <Compile Include="Models\VideoConfigSlot.cs" />
     <Compile Include="SatisfyingOverlayPlugin.cs" />

@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using BepInEx;
+using System.Linq;
 using BepInEx.Logging;
+using Comfort.Common;
 using EFT;
 using EFT.UI;
 using KmyTarkovApi;
 using SatisfyingOverlay.Models;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 using UnityEngine.Video;
 // ReSharper disable MemberCanBePrivate.Global
@@ -15,7 +17,7 @@ using UnityEngine.Video;
 
 namespace SatisfyingOverlay.Core;
 
-public class ADHDManager: MonoBehaviour
+public class VideoManager: MonoBehaviour
 {
     public Dictionary<VideoConfigSlot, GameObject> SlotActivePlayers = new();
     public Dictionary<VideoConfigSlot, RawImage> SlotImages = new();
@@ -24,15 +26,15 @@ public class ADHDManager: MonoBehaviour
 
     public ManualLogSource Logger;
     private bool InGame = false;
-    public static ADHDManager Instance;
+    public static VideoManager Instance;
     
-    public static ADHDManager Create(ManualLogSource log)
+    public static VideoManager Create(ManualLogSource log)
     {
         if (Instance != null)
             return Instance;
 
-        GameObject go = new GameObject("ADHDManager");
-        Instance = go.AddComponent<ADHDManager>();
+        GameObject go = new GameObject("VideoManager");
+        Instance = go.AddComponent<VideoManager>();
         Instance.Logger = log;
         DontDestroyOnLoad(go);
 
@@ -65,7 +67,7 @@ public class ADHDManager: MonoBehaviour
         Instance.UpdateInGameStatus(true);
         if (SettingsModel.Instance.GlobalEnable.Value)
         {
-            Instance.Logger.LogInfo("World started, we`ll start all ADHD video");
+            Instance.Logger.LogInfo("World started, we`ll start all video");
             foreach (var cfg in SettingsModel.Instance.Slots)
             {
                 if (!cfg.Enabled.Value) continue;
@@ -73,10 +75,14 @@ public class ADHDManager: MonoBehaviour
                 var go = Instance.PlayVideo(cfg);
 
                 if (go != null)
+                {
                     Instance.SlotActivePlayers[cfg] = go;
+                    Instance.UpdateMute(cfg);
+                }
             }
             
             Instance.Logger.LogInfo("We started all enabled videos");
+            Singleton<BetterAudio>.Instance.FadeMixerVolume(Singleton<BetterAudio>.Instance.AudioMixerData.MusicVolumeMixer, Singleton<SharedGameSettingsClass>.Instance.Sound.Settings.MusicVolumeValue, 0f, false);
         }
     }
     
@@ -88,7 +94,7 @@ public class ADHDManager: MonoBehaviour
 
     public void DisposeAllVideos()
     {
-        Logger.LogInfo("Disposing all ADHD video objects");
+        Logger.LogInfo("Disposing all video objects");
 
         foreach (var tex in SlotTextures)
         {
@@ -162,7 +168,22 @@ public class ADHDManager: MonoBehaviour
             
         videoPlayer.playOnAwake = false;
         videoPlayer.isLooping = true;
-        videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
+        videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
+        
+        var mixer = Singleton<GUISounds>.Instance.MasterMixer;
+        
+        AudioMixerGroup musicGroup = mixer.FindMatchingGroups("Music").First<AudioMixerGroup>();
+            
+        var audioSource = videoPlayerGO.gameObject.AddComponent<AudioSource>();
+        audioSource.spatialBlend = 0f;
+        audioSource.volume = 1f;
+        audioSource.playOnAwake = false;
+        audioSource.mute = !cfg.AudioEnable.Value;
+        audioSource.outputAudioMixerGroup = musicGroup;
+        
+        videoPlayer.SetTargetAudioSource(0, audioSource);
+        
+        
         videoPlayer.targetTexture = renderTexture;
         videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
         videoPlayer.source = VideoSource.Url;
@@ -206,7 +227,7 @@ public class ADHDManager: MonoBehaviour
 
     public void UpdateVideoSlot(VideoConfigSlot slot)
     {
-        Logger.LogInfo($"Updating slot: {slot.Preset.Value}");
+        Logger.LogInfo($"Updating slot: {slot.NameVideoSlot}");
         
         if (SlotImages.TryGetValue(slot, out var oldImage))
         {
@@ -268,5 +289,16 @@ public class ADHDManager: MonoBehaviour
     public void UpdateInGameStatus(bool status)
     {
         InGame = status;
+    }
+    
+    public void UpdateMute(VideoConfigSlot slot)
+    {
+        if (!SlotPlayers.TryGetValue(slot, out var videoPlayer))
+            return;
+
+        var existingSource = videoPlayer.GetTargetAudioSource(0);
+        existingSource.mute = !slot.AudioEnable.Value;
+
+        Logger.LogInfo($"Mute updated for slot: {slot.FileName.Value} = {slot.AudioEnable.Value}");
     }
 }

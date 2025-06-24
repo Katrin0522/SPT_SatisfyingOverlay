@@ -1,5 +1,4 @@
-﻿using System;
-using BepInEx.Configuration;
+﻿using BepInEx.Configuration;
 
 namespace SatisfyingOverlay.Models
 {
@@ -7,23 +6,13 @@ namespace SatisfyingOverlay.Models
     {
         public string NameVideoSlot;
         public ConfigEntry<bool> Enabled;
-        public ConfigEntry<VideoPreset> Preset;
         public ConfigEntry<string> FileName;
         public ConfigEntry<float> PositionX;
         public ConfigEntry<float> PositionY;
         public ConfigEntry<float> Width;
         public ConfigEntry<float> Height;
         public ConfigEntry<float> Transparency;
-    }
-    
-    [Serializable]
-    public enum VideoPreset
-    {
-        SoapCutting,
-        RugWashing,
-        KineticSand,
-        SlimePoke,
-        Custom
+        public ConfigEntry<bool> AudioEnable;
     }
 }
 

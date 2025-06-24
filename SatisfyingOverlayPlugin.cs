@@ -10,7 +10,7 @@ namespace SatisfyingOverlay
     public class SatisfyingOverlayPlugin : BaseUnityPlugin
     {
         private SettingsModel _settings;
-        private ADHDManager _manager;
+        private VideoManager _manager;
         private ManualLogSource _logSource;
         private bool inited = false;
         
@@ -20,18 +20,13 @@ namespace SatisfyingOverlay
                 return;
             
             _settings = SettingsModel.Create(Config);
-            _manager = ADHDManager.Create(Logger);
+            _manager = VideoManager.Create(Logger);
 
             foreach (var slot in _settings.Slots)
             {
                 slot.Enabled.SettingChanged += (_, __) =>
                 {
                     _manager.UpdateVideoSlot(slot);
-                };
-                
-                slot.Preset.SettingChanged += (_, __) =>
-                {
-                    slot.FileName.Value = SettingsModel.GetFileName(slot.Preset.Value);
                 };
                 
                 slot.FileName.SettingChanged += (_, __) =>
@@ -62,6 +57,11 @@ namespace SatisfyingOverlay
                 slot.Transparency.SettingChanged += (_, __) =>
                 {
                     _manager.UpdateTransparency(slot);
+                };
+                
+                slot.AudioEnable.SettingChanged += (_, __) =>
+                {
+                    _manager.UpdateMute(slot);
                 };
             }
             

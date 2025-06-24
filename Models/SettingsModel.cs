@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using BepInEx.Configuration;
 using KmyTarkovConfiguration.Attributes;
 
@@ -35,6 +36,11 @@ namespace SatisfyingOverlay.Models
 		
 		private void InitVideoSlots(ConfigFile configFile)
 		{
+			var videoPath = Path.Combine(BepInEx.Paths.PluginPath, "SatisfyingOverlay", "Videos");
+			string[] files = Directory.GetFiles(videoPath, "*.mp4")
+				.Select(Path.GetFileName)
+				.ToArray();
+			
 			for (int i = 0; i < 10; i++)
 			{
 				string section = $"Video {i}";
@@ -52,27 +58,16 @@ namespace SatisfyingOverlay.Models
 							{
 								Order = 7
 							})),
-					Preset = configFile.Bind(
-                        section,
-                        "Preset",
-                        VideoPreset.SoapCutting,
-                        new ConfigDescription(
-	                        "Preset video to show", 
-	                        null, 
-	                        new ConfigurationManagerAttributes
-	                        {
-		                        Order = 6
-	                        })),
 					FileName = configFile.Bind(
                         section,
                         "FileName",
                         "soap.mp4",
                         new ConfigDescription(
 							"Video file for slot {i}", 
-							null, 
+							new AcceptableValueList<string>(files), 
 							new ConfigurationManagerAttributes
 							{
-								Order = 5
+								Order = 6
 							})),
 					PositionX = configFile.Bind(
                         section,
@@ -81,7 +76,7 @@ namespace SatisfyingOverlay.Models
                         new ConfigDescription("X Position", new AcceptableValueRange<float>(-2000f, 2000f), 
 	                        new ConfigurationManagerAttributes
 	                        {
-		                        Order = 4
+		                        Order = 5
 	                        })),
 					PositionY = configFile.Bind(
                         section,
@@ -90,7 +85,7 @@ namespace SatisfyingOverlay.Models
                         new ConfigDescription("Y Position", new AcceptableValueRange<float>(-2000f, 2000f), 
 	                        new ConfigurationManagerAttributes
 	                        {
-		                        Order = 3
+		                        Order = 4
 	                        })),
 					Width = configFile.Bind(
                         section,
@@ -99,7 +94,7 @@ namespace SatisfyingOverlay.Models
                         new ConfigDescription("Scale Width", new AcceptableValueRange<float>(0f, 3000f), 
 	                        new ConfigurationManagerAttributes
 	                        {
-		                        Order = 2
+		                        Order = 3
 	                        })),
 					Height = configFile.Bind(
                         section,
@@ -108,7 +103,7 @@ namespace SatisfyingOverlay.Models
                         new ConfigDescription("Scale Height", new AcceptableValueRange<float>(0f, 3000f), 
 	                        new ConfigurationManagerAttributes
 	                        {
-		                        Order = 1
+		                        Order = 2
 	                        })),
 					Transparency = configFile.Bind(
                         section,
@@ -117,24 +112,20 @@ namespace SatisfyingOverlay.Models
                         new ConfigDescription("Transparency", new AcceptableValueRange<float>(0f, 1f), 
 	                        new ConfigurationManagerAttributes
 	                        {
-		                        Order = 0
-	                        }))
+		                        Order = 1
+	                        })),
+					AudioEnable = configFile.Bind(
+						section,
+						"AudioEnable",
+						false,
+						new ConfigDescription("AudioEnable", null, 
+							new ConfigurationManagerAttributes
+							{
+								Order = 0
+							}))
 				};
 				Slots.Add(slot);
 			}
-		}
-		
-		public static string GetFileName(VideoPreset preset)
-		{
-			return preset switch
-			{
-				VideoPreset.SoapCutting => "soap.mp4",
-				VideoPreset.RugWashing => "rug.mp4",
-				VideoPreset.KineticSand => "sand.mp4",
-				VideoPreset.SlimePoke => "slime.mp4",
-				VideoPreset.Custom => "custom.mp4",
-				_ => ""
-			};
 		}
 	}
 }
