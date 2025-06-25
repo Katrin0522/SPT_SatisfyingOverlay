@@ -1,4 +1,4 @@
-# 🎬 SatisfyingOverlay for SPT-AKI
+# 🎬SPT SatisfyingOverlay mod
 
 **Because nothing calms you down like a rug being pressure-washed...**  
 **...while you're bleeding out in Interchange.**
