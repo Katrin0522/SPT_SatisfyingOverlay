@@ -18,7 +18,7 @@ namespace SatisfyingOverlay.Models
 		{
 			GlobalEnable = configFile.Bind(
 				"Main", 
-				"Show ADHD overlay", 
+				"Show overlay", 
 				true, 
 				"Show videos in overlay in raid. Will applied when restart raid");
 			
@@ -60,10 +60,10 @@ namespace SatisfyingOverlay.Models
 							})),
 					FileName = configFile.Bind(
                         section,
-                        "FileName",
+                        "Video",
                         "soap.mp4",
                         new ConfigDescription(
-							"Video file for slot {i}", 
+							"Select video. List update need restart game", 
 							new AcceptableValueList<string>(files), 
 							new ConfigurationManagerAttributes
 							{
