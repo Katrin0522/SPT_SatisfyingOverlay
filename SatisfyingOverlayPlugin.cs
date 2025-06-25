@@ -5,7 +5,7 @@ using SatisfyingOverlay.Models;
 
 namespace SatisfyingOverlay
 {
-    [BepInPlugin("katrin0522.github.SatisfyingOverlay", "Kat.SatisfyingOverlay", "1.0.0")]
+    [BepInPlugin("katrin0522.github.SatisfyingOverlay", "Kat.SatisfyingOverlay", "1.0.1")]
     [BepInDependency("com.kmyuhkyuk.KmyTarkovApi", "1.4.0")]
     public class SatisfyingOverlayPlugin : BaseUnityPlugin
     {
