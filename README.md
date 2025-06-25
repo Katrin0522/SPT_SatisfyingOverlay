@@ -1,52 +1,69 @@
-# SPT-SatisfyingOverlay
+# 🎬 SatisfyingOverlay for SPT-AKI
 
-Because nothing calms you down like a rug being pressure-washed…  
-...while you're bleeding out in Interchange.
+**Because nothing calms you down like a rug being pressure-washed...**  
+**...while you're bleeding out in Interchange.**
 
-This mod adds configurable ADHD-style videos (like soap cutting or carpet washing) directly into your SPT-AKI raids.  
-Pure visual dopamine, perfect for tactical vibing mid-fight.
+This mod adds configurable **video overlays** directly into your **SPT-AKI raids**.  
+Perfect for tactical vibing mid-fight — pure visual dopamine.
 
 ---
 
 ## 🧠 Features
 
-- 🎥 Plays relaxing/satisfying videos during raids
-- Supports adding up to 10 videos at the same time!!
-- ⚙️ Fully configurable:
+- 🎥 **Plays videos during raids**
+  - Supports **up to 10 videos** at the same time!
+- ⚙️ **Fully configurable settings per video-player:**
   - Position (X/Y)
   - Scale (Width/Height)
   - Transparency
-  - Set video by custom name file
-  - Separate control for each player
-- 🔊 Optional audio support (if you really want to hear the 'ASMR')(WIP)
+  - Audio toggle
+  - Custom video from mod folder
 
 ---
 
 ## 🔧 Installation
 
-1. Copy the mod folder into your `BepInEx/plugins/` directory
-   
-3. Launch the game once — then press `F12` to open **BepInEx ConfigurationManager**
-   
-5. You change everything to your liking in the Kat.SatisfyingOverlay tab!
+1. Download and install **[KmyTarkovApi v1.4.0 or later](https://hub.sp-tarkov.com/files/file/1215-kmy-tarkov-api/)** – **this is required**!
+2. Extract the `BepInEx` folder from the `.7z` archive into your **SPT root directory**.
+3. Launch the game — **done!**
 
 ---
 
-## 📦 Requirements
+## ▶️ How to Use
 
-- SPT (tested with version 3.11.2)
-- Installed Kmy-Tarkov-Api
-  
----
+📺 Video guide: [https://youtu.be/ZoWvqE2H6d4](https://youtu.be/ZoWvqE2H6d4)
 
-## 📜 License
+### 🔹 How to add my own videos?
 
-This mod is open-source and licensed under the [MIT License](LICENSE).  
-Do whatever you want with it — just give credit and keep it weird.
+1. Drop your `.mp4` files into:  
+   `BepInEx/plugins/SatisfyingOverlay/Videos`
+2. Start SPT.
+3. Press **F12** to open the overlay configurator.
+4. Select your video from the dropdown list.
 
----
+### 🔹 Does it work outside of raids?
 
-## 🧽 Credits
+- ❌ No. Videos play **only during raids.**
 
-Made by Katrin0522 aka Kat.
-Idea sparked by pure overstimulation and a love for oddly satisfying TikToks.
+### 🔹 Why is the archive size large?
+
+- Comes with **5 example videos**:
+  - Carpet cleaning
+  - Kinetic sand cutting
+  - Slime
+  - Soap crushing
+  - Subway Surfers gameplay
+
+### 🔹 Can videos play sound?
+
+- ✅ Yes!
+  - Enable **“AudioEnable”** in the video slot settings.
+  - Volume is linked to **in-game music volume** slider.
+
+### 🔹 My video doesn’t show up!
+
+- Make sure the file is a `.mp4`
+- Avoid strange characters in the filename.
+- Re-encode the video using `ffmpeg`:
+  ```bash
+  ffmpeg -i broken.mp4 -c:v libx264 -c:a aac fixed.mp4
