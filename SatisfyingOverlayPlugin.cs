@@ -12,13 +12,9 @@ namespace SatisfyingOverlay
         private SettingsModel _settings;
         private VideoManager _manager;
         private ManualLogSource _logSource;
-        private bool inited = false;
         
         private void Awake()
         {
-            if(inited)
-                return;
-            
             _settings = SettingsModel.Create(Config);
             _manager = VideoManager.Create(Logger);
 
