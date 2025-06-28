@@ -254,8 +254,6 @@ public class VideoManager: MonoBehaviour
                 oldTexture.Release();
                 Destroy(oldTexture);
             }
-            
-            SlotActivePlayers.Remove(slot);
         }
         
         if (SlotActivePlayers.TryGetValue(slot, out var oldActivePlayer))
@@ -267,7 +265,7 @@ public class VideoManager: MonoBehaviour
             }
         }
         
-        if (!slot.Enabled.Value || !InGame)
+        if (!slot.Enabled.Value || !InGame || !SettingsModel.Instance.GlobalEnable.Value)
         {
             return;
         }

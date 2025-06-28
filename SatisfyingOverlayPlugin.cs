@@ -22,6 +22,14 @@ namespace SatisfyingOverlay
             _settings = SettingsModel.Create(Config);
             _manager = VideoManager.Create(Logger);
 
+            _settings.GlobalEnable.SettingChanged += (_, __) =>
+            {
+                foreach (var slot in _settings.Slots)
+                {
+                    _manager.UpdateVideoSlot(slot);
+                }
+            };
+            
             foreach (var slot in _settings.Slots)
             {
                 slot.Enabled.SettingChanged += (_, __) =>
